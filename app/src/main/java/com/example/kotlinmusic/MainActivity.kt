@@ -1,6 +1,7 @@
 package com.example.kotlinmusic
 
 import android.os.Bundle
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.RawResourceDataSource
 import android.content.Context
 
+// chiengue
 class MainActivity : ComponentActivity() {
     private lateinit var player: ExoPlayer
 
