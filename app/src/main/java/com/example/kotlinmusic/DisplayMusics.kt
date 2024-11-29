@@ -41,7 +41,6 @@ fun DisplayMusics(player: ExoPlayer, playlist: String) {
         }
     }
 }
-
 @Composable
 fun PlaylistPage(player: ExoPlayer, playlist: String) {
     val context = LocalContext.current
@@ -50,14 +49,16 @@ fun PlaylistPage(player: ExoPlayer, playlist: String) {
 
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(rawResources) { file ->
+            val displayName = file.replaceFirst("playlist1_", "").replaceFirst("playlist2_", "").replace('_', ' ').replaceFirstChar { it.uppercase() }
             Text(
-                text = file,
+                text = displayName,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
                         selectedFile = file
+                        val resourceName = file.lowercase().replace(' ', '_')
                         val uri = RawResourceDataSource.buildRawResourceUri(
-                            context.resources.getIdentifier(file, "raw", context.packageName)
+                            context.resources.getIdentifier(resourceName, "raw", context.packageName)
                         )
                         player.setMediaItem(MediaItem.fromUri(uri))
                         player.prepare()
@@ -72,13 +73,21 @@ fun PlaylistPage(player: ExoPlayer, playlist: String) {
 
     PlayerViewComposable(player)
 }
-
 fun getRawResourceFileNames(context: Context, playlist: String): List<String> {
     val rawResources = mutableListOf<String>()
     val fields = R.raw::class.java.fields
     for (field in fields) {
-        if (playlist == "Playlist 1") {
-            rawResources.add(field.name)
+        when (playlist) {
+            "Playlist 1" -> {
+                if (field.name.startsWith("playlist1_")) {
+                    rawResources.add(field.name.lowercase().replace(' ', '_'))
+                }
+            }
+            "Playlist 2" -> {
+                if (field.name.startsWith("playlist2_")) {
+                    rawResources.add(field.name.lowercase().replace(' ', '_'))
+                }
+            }
         }
     }
     return rawResources
