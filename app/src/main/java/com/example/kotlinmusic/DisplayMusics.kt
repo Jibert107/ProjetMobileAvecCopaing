@@ -21,9 +21,7 @@ import com.google.android.exoplayer2.upstream.RawResourceDataSource
 import androidx.compose.ui.Alignment
 
 @Composable
-fun DisplayMusics(player: ExoPlayer, playlist: String) {
-    val context = LocalContext.current
-
+fun DisplayMusics(player: ExoPlayer, playlist: String, onBack: () -> Unit) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -32,7 +30,7 @@ fun DisplayMusics(player: ExoPlayer, playlist: String) {
                 contentDescription = "Back",
                 modifier = Modifier
                     .padding(16.dp)
-                    .clickable { (context as? ComponentActivity)?.finish() }
+                    .clickable { onBack() }
             )
         }
     ) { paddingValues ->
@@ -50,14 +48,16 @@ fun PlaylistPage(player: ExoPlayer, playlist: String) {
 
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         items(rawResources) { file ->
+            val displayName = file.replaceFirst("playlist1_", "").replaceFirst("playlist2_", "").replace('_', ' ').replaceFirstChar { it.uppercase() }
             Text(
-                text = file,
+                text = displayName,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
                         selectedFile = file
+                        val resourceName = file.lowercase().replace(' ', '_')
                         val uri = RawResourceDataSource.buildRawResourceUri(
-                            context.resources.getIdentifier(file, "raw", context.packageName)
+                            context.resources.getIdentifier(resourceName, "raw", context.packageName)
                         )
                         player.setMediaItem(MediaItem.fromUri(uri))
                         player.prepare()
@@ -67,23 +67,34 @@ fun PlaylistPage(player: ExoPlayer, playlist: String) {
             )
         }
     }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    PlayerViewComposable(player)
 }
-
 fun getRawResourceFileNames(context: Context, playlist: String): List<String> {
     val rawResources = mutableListOf<String>()
     val fields = R.raw::class.java.fields
     for (field in fields) {
-        if (playlist == "Playlist 1") {
-            rawResources.add(field.name)
+        when (playlist) {
+            "Playlist 1" -> {
+                if (field.name.startsWith("playlist1_")) {
+                    rawResources.add(field.name.lowercase().replace(' ', '_'))
+                }
+            }
+            "Playlist 2" -> {
+                if (field.name.startsWith("playlist2_")) {
+                    rawResources.add(field.name.lowercase().replace(' ', '_'))
+                }
+            }
         }
     }
     return rawResources
 }
-
+fun getAllResourceFileNames(context: Context): List<String> {
+    val rawResources = mutableListOf<String>()
+    val fields = R.raw::class.java.fields
+    for (field in fields) {
+        rawResources.add(field.name.lowercase().replace(' ', '_'))
+    }
+    return rawResources
+}
 @Composable
 fun PlayerViewComposable(player: ExoPlayer, modifier: Modifier = Modifier) {
     AndroidView(factory = { context ->
