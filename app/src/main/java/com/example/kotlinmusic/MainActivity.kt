@@ -1,7 +1,6 @@
 package com.example.kotlinmusic
 
 import android.os.Bundle
-import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -11,9 +10,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.kotlinmusic.ui.theme.KotlinMusicTheme
 import com.google.android.exoplayer2.ExoPlayer
@@ -21,14 +19,16 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.RawResourceDataSource
 import android.content.Context
+import androidx.compose.ui.tooling.preview.Preview
 
-// chiengue
-class MainActivity : ComponentActivity() {
+class MusicActivity : ComponentActivity() {
     private lateinit var player: ExoPlayer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         player = ExoPlayer.Builder(this).build()
+
+        val selectedPlaylist = intent.getStringExtra("selected_playlist") ?: "default"
 
         setContent {
             KotlinMusicTheme {
@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
                     Column(modifier = Modifier.padding(paddingValues)) {
                         var selectedFile by remember { mutableStateOf("Select a file") }
                         val context = LocalContext.current
-                        val rawResources = getRawResourceFileNames(context)
+                        val rawResources = getRawResourceFileNames(context, selectedPlaylist)
 
                         LazyColumn(modifier = Modifier.fillMaxWidth()) {
                             items(rawResources) { file ->
@@ -73,11 +73,13 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-fun getRawResourceFileNames(context: Context): List<String> {
+fun getRawResourceFileNames(context: Context, playlist: String): List<String> {
     val rawResources = mutableListOf<String>()
     val fields = R.raw::class.java.fields
     for (field in fields) {
-        rawResources.add(field.name)
+        if (field.name.startsWith(playlist)) {
+            rawResources.add(field.name)
+        }
     }
     return rawResources
 }
