@@ -1,4 +1,3 @@
-// DisplayMusics.kt
 package com.example.kotlinmusic
 
 import android.content.Context
@@ -19,45 +18,15 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.ui.PlayerView
 import com.google.android.exoplayer2.upstream.RawResourceDataSource
-
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.BottomNavigation
 import androidx.compose.ui.Alignment
 
 @Composable
 fun DisplayMusics(player: ExoPlayer, playlist: String) {
     val context = LocalContext.current
-    var selectedIndex by remember { mutableStateOf(0) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            BottomNavigation {
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                    label = { Text("Home") },
-                    selected = selectedIndex == 0,
-                    onClick = { selectedIndex = 0 }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-                    label = { Text("Search") },
-                    selected = selectedIndex == 1,
-                    onClick = { selectedIndex = 1 }
-                )
-                BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Menu, contentDescription = "Playlist") },
-                    label = { Text("Playlist") },
-                    selected = selectedIndex == 2,
-                    onClick = { selectedIndex = 2 }
-                )
-            }
-        }
-    ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
+        topBar = {
             Icon(
                 imageVector = Icons.Filled.ArrowBack,
                 contentDescription = "Back",
@@ -65,27 +34,11 @@ fun DisplayMusics(player: ExoPlayer, playlist: String) {
                     .padding(16.dp)
                     .clickable { (context as? ComponentActivity)?.finish() }
             )
-
-            when (selectedIndex) {
-                0 -> HomePage()
-                1 -> SearchPage()
-                2 -> PlaylistPage(player, playlist)
-            }
         }
-    }
-}
-
-@Composable
-fun HomePage() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Home Page")
-    }
-}
-
-@Composable
-fun SearchPage() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Search Page")
+    ) { paddingValues ->
+        Column(modifier = Modifier.padding(paddingValues)) {
+            PlaylistPage(player, playlist)
+        }
     }
 }
 
