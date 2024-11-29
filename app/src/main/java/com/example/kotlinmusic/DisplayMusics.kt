@@ -92,7 +92,14 @@ fun getRawResourceFileNames(context: Context, playlist: String): List<String> {
     }
     return rawResources
 }
-
+fun getAllResourceFileNames(context: Context): List<String> {
+    val rawResources = mutableListOf<String>()
+    val fields = R.raw::class.java.fields
+    for (field in fields) {
+        rawResources.add(field.name.lowercase().replace(' ', '_'))
+    }
+    return rawResources
+}
 @Composable
 fun PlayerViewComposable(player: ExoPlayer, modifier: Modifier = Modifier) {
     AndroidView(factory = { context ->

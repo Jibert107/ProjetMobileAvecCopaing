@@ -12,6 +12,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +20,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.kotlinmusic.ui.theme.KotlinMusicTheme
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.upstream.RawResourceDataSource
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,10 +51,16 @@ fun MainScreen() {
                     onClick = { selectedIndex = 0 }
                 )
                 BottomNavigationItem(
-                    icon = { Icon(Icons.Default.Menu, contentDescription = "Playlist") },
-                    label = { Text("Playlist") },
+                    icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    label = { Text("Search") },
                     selected = selectedIndex == 1,
                     onClick = { selectedIndex = 1 }
+                )
+                BottomNavigationItem(
+                    icon = { Icon(Icons.Default.Menu, contentDescription = "Playlist") },
+                    label = { Text("Playlist") },
+                    selected = selectedIndex == 2,
+                    onClick = { selectedIndex = 2 }
                 )
             }
         }
@@ -59,7 +68,8 @@ fun MainScreen() {
         Column(modifier = Modifier.padding(paddingValues)) {
             when (selectedIndex) {
                 0 -> HomePage()
-                1 -> PlaylistScreen()
+                1 -> SearchScreen()
+                2 -> PlaylistScreen()
             }
         }
     }
@@ -92,5 +102,52 @@ fun PlaylistScreen() {
                     .padding(16.dp)
             )
         }
+    }
+}
+
+@Composable
+fun SearchScreen() {
+    val context = LocalContext.current
+    val allRawResources = getAllResourceFileNames(context)
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredResources = allRawResources.filter { it.contains(searchQuery.lowercase()) }
+    var selectedFile by remember { mutableStateOf("Select a file") }
+    val player = remember { ExoPlayer.Builder(context).build() }
+
+    Column {
+        TextField(
+            value = searchQuery,
+            onValueChange = { searchQuery = it },
+            label = { Text("Search") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        )
+
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            items(filteredResources) { file ->
+                val displayName = file.replaceFirst("playlist1_", "").replaceFirst("playlist2_", "").replace('_', ' ').replaceFirstChar { it.uppercase() }
+                Text(
+                    text = displayName,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            selectedFile = file
+                            val resourceName = file.lowercase().replace(' ', '_')
+                            val uri = RawResourceDataSource.buildRawResourceUri(
+                                context.resources.getIdentifier(resourceName, "raw", context.packageName)
+                            )
+                            player.setMediaItem(MediaItem.fromUri(uri))
+                            player.prepare()
+                            player.play()
+                        }
+                        .padding(16.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        PlayerViewComposable(player)
     }
 }
