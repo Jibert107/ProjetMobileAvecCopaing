@@ -2,6 +2,7 @@
 package com.example.kotlinmusic
 
 import android.content.Context
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.ui.PlayerView
@@ -25,6 +28,14 @@ fun DisplayMusics(player: ExoPlayer, playlist: String) {
 
     Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "Retour",
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { (context as? ComponentActivity)?.finish() }
+            )
+
             LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 items(rawResources) { file ->
                     Text(
