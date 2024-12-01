@@ -1,8 +1,11 @@
 package com.example.kotlinmusic
 
+import DeezerTrack
+import DeezerWorker
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -41,10 +44,20 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.material.icons.filled.Add
 
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.PlaybackException
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.util.Log
+import com.google.gson.Gson
 
 
 class MainActivity : ComponentActivity() {
@@ -86,36 +99,34 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 @Composable
 fun MainScreen() {
     val context = LocalContext.current
     var selectedIndex by remember { mutableStateOf(0) }
     val player = remember { ExoPlayer.Builder(context).build() }
-    var currentTrack by remember { mutableStateOf("") }
+    var currentTrack by remember { mutableStateOf<DeezerTrack?>(null) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             Column {
-                if (currentTrack.isNotEmpty()) {
-                    MusicPlayerBar(player, currentTrack)
+                if (currentTrack != null) {
+                    MusicPlayerBar(player, currentTrack!!.toString())
                 }
-                BottomNavigation (backgroundColor = SpotifyGreen){
+                BottomNavigation(backgroundColor = SpotifyGreen) {
                     BottomNavigationItem(
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home") },
                         selected = selectedIndex == 0,
                         onClick = { selectedIndex = 0 }
                     )
                     BottomNavigationItem(
                         icon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-                        label = { Text("Search") },
                         selected = selectedIndex == 1,
                         onClick = { selectedIndex = 1 }
                     )
                     BottomNavigationItem(
                         icon = { Icon(Icons.Default.Menu, contentDescription = "Playlist") },
-                        label = { Text("Playlist") },
                         selected = selectedIndex == 2,
                         onClick = { selectedIndex = 2 }
                     )
@@ -128,20 +139,14 @@ fun MainScreen() {
                 0 -> HomePage()
                 1 -> SearchScreen { track ->
                     currentTrack = track
-                    val resourceName = track.lowercase().replace(' ', '_')
-                    val uri = RawResourceDataSource.buildRawResourceUri(
-                        context.resources.getIdentifier(resourceName, "raw", context.packageName)
-                    )
+                    val uri = Uri.parse(track?.preview ?: "")
                     player.setMediaItem(MediaItem.fromUri(uri))
                     player.prepare()
                     player.play()
                 }
                 2 -> PlaylistScreen { track ->
                     currentTrack = track
-                    val resourceName = track.lowercase().replace(' ', '_')
-                    val uri = RawResourceDataSource.buildRawResourceUri(
-                        context.resources.getIdentifier(resourceName, "raw", context.packageName)
-                    )
+                    val uri = Uri.parse(track?.preview ?: "")
                     player.setMediaItem(MediaItem.fromUri(uri))
                     player.prepare()
                     player.play()
@@ -159,7 +164,7 @@ fun HomePage() {
             Column(modifier = Modifier.weight(3f).padding(16.dp)) { // Right part (3/4 of the screen)
                 TaskItem("Mobile Android application in Kotlin (API > 35)", false)
                 TaskItem("Request a permission at runtime (location, camera, . . . )", true)
-                TaskItem("Usage of the WorkManager", false)
+                TaskItem("Usage of the WorkManager", true)
                 TaskItem("UI using XML or Jetpack Compose", true)
                 TaskItem("Activity navigation inside the app", false)
             }
@@ -188,19 +193,31 @@ fun TaskItem(task: String, isCompleted: Boolean) {
 }
 
 @Composable
-fun SearchScreen(onTrackSelected: (String) -> Unit) {
+fun SearchScreen(onTrackSelected: (DeezerTrack) -> Unit) {
     val context = LocalContext.current
-    val allRawResources = getAllResourceFileNames(context)
+    val lifecycleOwner = LocalLifecycleOwner.current
     var searchQuery by remember { mutableStateOf("") }
-    val filteredResources = allRawResources.filter { it.contains(searchQuery.lowercase()) }
+    var searchResult by remember { mutableStateOf<DeezerTrack?>(null) }
 
-    Column (modifier = Modifier
-        .fillMaxSize()
-        .background(SpotifyBlack)) {
-
+    Column(modifier = Modifier.fillMaxSize().background(SpotifyBlack)) {
         TextField(
             value = searchQuery,
-            onValueChange = { searchQuery = it },
+            onValueChange = { query ->
+                searchQuery = query
+                if (query.isNotEmpty()) {
+                    val workRequest = OneTimeWorkRequestBuilder<DeezerWorker>()
+                        .setInputData(workDataOf("query" to query))
+                        .build()
+                    WorkManager.getInstance(context).enqueue(workRequest)
+                    WorkManager.getInstance(context).getWorkInfoByIdLiveData(workRequest.id)
+                        .observe(lifecycleOwner) { workInfo ->
+                            if (workInfo != null && workInfo.state.isFinished) {
+                                val trackJson = workInfo.outputData.getString("track")
+                                searchResult = Gson().fromJson(trackJson, DeezerTrack::class.java)
+                            }
+                        }
+                }
+            },
             label = { Text("Search", color = Color.Black, fontWeight = FontWeight.Bold) },
             textStyle = TextStyle(color = Color.Black, fontWeight = FontWeight.Bold),
             colors = TextFieldDefaults.textFieldColors(
@@ -210,29 +227,24 @@ fun SearchScreen(onTrackSelected: (String) -> Unit) {
                 unfocusedIndicatorColor = Color.Black,
                 backgroundColor = Color.White
             ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
         )
 
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(filteredResources) { file ->
-                val displayName = file.replaceFirst("playlist1_", "").replaceFirst("playlist2_", "").replace('_', ' ').replaceFirstChar { it.uppercase() }
-                Text(
-                    text = displayName,
-                    color = Color.White,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onTrackSelected(file) }
-                        .padding(16.dp)
-                )
-            }
+        searchResult?.let { track ->
+            Text(
+                text = "${track.title} by ${track.artist.name}",
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth().clickable {
+                    onTrackSelected(track)
+                }.padding(16.dp)
+            )
         }
     }
 }
 
+
 @Composable
-fun PlaylistScreen(onTrackSelected: (String) -> Unit) {
+fun PlaylistScreen(onTrackSelected: (DeezerTrack) -> Unit) {
     val context = LocalContext.current
     val playlists = listOf("Playlist 1", "Playlist 2", "Playlist 3")
 
@@ -240,16 +252,10 @@ fun PlaylistScreen(onTrackSelected: (String) -> Unit) {
         items(playlists) { playlist ->
             Text(
                 text = playlist,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        val intent = Intent(context, DisplayMusicsActivity::class.java).apply {
-                            putExtra("selected_playlist", playlist)
-                        }
-                        context.startActivity(intent)
-                    }
-                    .padding(16.dp)
-                    .background(SpotifyBlack)
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth().clickable {
+                    // Handle playlist click
+                }.padding(16.dp)
             )
         }
     }
@@ -257,8 +263,8 @@ fun PlaylistScreen(onTrackSelected: (String) -> Unit) {
 
 @Composable
 fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
+    val context = LocalContext.current
     val isPlaying by remember { mutableStateOf(player.isPlaying) }
-
 
     val trackTitle = currentTrack
         .replaceFirst("playlist1", "")
@@ -279,26 +285,21 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Image placeholder pour la musique
+            // Image placeholder for the music
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .background(MaterialTheme.colors.onSurface.copy(alpha = 0.1f))
-            ) {
-                Text(
-                    text = "🎵", // Icône par défaut
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+                    .background(Color.Gray)
+            )
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // Titre et artiste
+            // Title and artist
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = trackTitle,
+                    style = MaterialTheme.typography.body1,
                     color = Color.White,
-                    style = MaterialTheme.typography.subtitle1,
                     maxLines = 1
                 )
                 Text(
@@ -309,7 +310,7 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
                 )
             }
 
-            // Bouton Play/Pause
+            // Play/Pause button
             IconButton(onClick = {
                 if (player.isPlaying) {
                     player.pause()
@@ -318,22 +319,29 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
                 }
             }) {
                 Icon(
-                    imageVector = if (isPlaying) Icons.Default.PlayArrow else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play"
+                    imageVector = if (isPlaying) Icons.Default.Add else Icons.Default.PlayArrow,
+                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    tint = Color.White
                 )
             }
         }
 
-        // Barre de progression (dummy ou réelle)
+        // Progress bar (dummy or real)
         LinearProgressIndicator(
-            progress = if (player.isPlaying) 0.5f else 0f, // Mettre une vraie logique ici
+            progress = if (player.isPlaying) 0.5f else 0f, // Add real logic here
             modifier = Modifier
                 .fillMaxWidth()
                 .height(4.dp)
         )
     }
-}
 
+    // Add error listener
+    player.addListener(object : Player.Listener {
+        override fun onPlayerError(error: PlaybackException) {
+            Log.e("PlaybackError", "ExoPlayer error: ${error.message}")
+        }
+    })
+}
 
 @Composable
 fun CameraPreview(modifier: Modifier = Modifier) {
