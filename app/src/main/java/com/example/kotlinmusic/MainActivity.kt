@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -166,29 +167,72 @@ fun PlaylistScreen(onTrackSelected: (String) -> Unit) {
 @Composable
 fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
     val isPlaying by remember { mutableStateOf(player.isPlaying) }
-    val context = LocalContext.current
 
-    Row(
+
+    val trackTitle = currentTrack.replace('_', ' ').replaceFirstChar { it.uppercase() }
+    val trackArtist = "Unknown Artist"
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .background(MaterialTheme.colors.surface)
     ) {
-        Text(
-            text = currentTrack,
-            modifier = Modifier.weight(1f)
-        )
-        IconButton(onClick = {
-            if (player.isPlaying) {
-                player.pause()
-            } else {
-                player.play()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Image placeholder pour la musique
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(MaterialTheme.colors.onSurface.copy(alpha = 0.1f))
+            ) {
+                Text(
+                    text = "🎵", // Icône par défaut
+                    modifier = Modifier.align(Alignment.Center)
+                )
             }
-        }) {
-            Icon(
-                imageVector = if (player.isPlaying) Icons.Default.Add else Icons.Default.PlayArrow,
-                contentDescription = if (player.isPlaying) "Pause" else "Play"
-            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Titre et artiste
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = trackTitle,
+                    style = MaterialTheme.typography.subtitle1,
+                    maxLines = 1
+                )
+                Text(
+                    text = trackArtist,
+                    style = MaterialTheme.typography.caption,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                    maxLines = 1
+                )
+            }
+
+            // Bouton Play/Pause
+            IconButton(onClick = {
+                if (player.isPlaying) {
+                    player.pause()
+                } else {
+                    player.play()
+                }
+            }) {
+                Icon(
+                    imageVector = if (isPlaying) Icons.Default.PlayArrow else Icons.Default.Add,
+                    contentDescription = if (isPlaying) "Pause" else "Play"
+                )
+            }
         }
+
+        // Barre de progression (dummy ou réelle)
+        LinearProgressIndicator(
+            progress = if (player.isPlaying) 0.5f else 0f, // Mettre une vraie logique ici
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+        )
     }
 }

@@ -1,6 +1,5 @@
 package com.example.kotlinmusic.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -10,37 +9,37 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
+
+
+// Définir les color schemes pour le mode clair et sombre
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = SpotifyGreen,
+    background = SpotifyBlack,
+    surface = SpotifyBlack,
+    onPrimary = Color.White,
+    onSurface = SpotifyGray,
+    onBackground = Color.White
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = SpotifyGreen,
+    background = Color.White,
+    surface = Color.White,
+    onPrimary = Color.Black,
+    onSurface = SpotifyGray,
+    onBackground = Color.Black
 )
 
 @Composable
 fun KotlinMusicTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = isSystemInDarkTheme(), // Active le mode sombre automatiquement
+    dynamicColor: Boolean = true,              // Active les couleurs dynamiques si disponibles
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        // Vérifie si les couleurs dynamiques sont disponibles (Android 12+)
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -50,9 +49,10 @@ fun KotlinMusicTheme(
         else -> LightColorScheme
     }
 
+    // Applique le thème à l'application
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = Typography, // Typographie personnalisée (si définie)
         content = content
     )
 }
