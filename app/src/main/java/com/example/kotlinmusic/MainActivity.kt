@@ -164,8 +164,9 @@ fun HomePage() {
                 TaskItem("Activity navigation inside the app", false)
             }
             Spacer(modifier = Modifier.weight(1f))
-            CameraPreview(modifier = Modifier.fillMaxWidth().weight(1f))
+
         }
+        CameraPreview()
     }
 }
 
@@ -259,7 +260,12 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
     val isPlaying by remember { mutableStateOf(player.isPlaying) }
 
 
-    val trackTitle = currentTrack.replace('_', ' ').replaceFirstChar { it.uppercase() }
+    val trackTitle = currentTrack
+        .replaceFirst("playlist1", "")
+        .replaceFirst("playlist2", "")
+        .replaceFirst("playlist3", "")
+        .replace('_', ' ')
+        .replaceFirstChar { it.uppercase() }
     val trackArtist = "Unknown Artist"
 
     Column(
@@ -339,7 +345,7 @@ fun CameraPreview(modifier: Modifier = Modifier) {
     DisposableEffect(Unit) {
         val cameraProvider = cameraProviderFuture.get()
         val preview = Preview.Builder()
-            .setTargetResolution(Size(1280, 720))
+            .setTargetResolution(Size(640, 360))
             .build()
         val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -359,5 +365,7 @@ fun CameraPreview(modifier: Modifier = Modifier) {
     AndroidView(
         factory = { previewView },
         modifier = modifier
+            .width(200.dp)  // Set the desired width
+            .height(150.dp) // Set the desired height
     )
 }
