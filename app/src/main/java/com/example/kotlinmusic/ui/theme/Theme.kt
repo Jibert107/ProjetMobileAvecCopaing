@@ -10,6 +10,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.Typography
+
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 
 
@@ -32,14 +38,28 @@ private val LightColorScheme = lightColorScheme(
     onBackground = Color.Black
 )
 
+val CustomTypography = Typography(
+    bodyLarge = TextStyle(
+        color = Color.White,
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp
+    ),
+    headlineLarge = TextStyle(
+        color = Color.White,
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 30.sp
+    )
+)
 @Composable
 fun KotlinMusicTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(), // Active le mode sombre automatiquement
-    dynamicColor: Boolean = true,              // Active les couleurs dynamiques si disponibles
+    darkTheme: Boolean = false,
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        // Vérifie si les couleurs dynamiques sont disponibles (Android 12+)
+
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -52,7 +72,7 @@ fun KotlinMusicTheme(
     // Applique le thème à l'application
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Typographie personnalisée (si définie)
+        typography = CustomTypography,
         content = content
     )
 }

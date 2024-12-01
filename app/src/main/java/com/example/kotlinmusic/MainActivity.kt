@@ -19,9 +19,15 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.kotlinmusic.ui.theme.KotlinMusicTheme
+import com.example.kotlinmusic.ui.theme.SpotifyBlack
+import com.example.kotlinmusic.ui.theme.SpotifyGray
+import com.example.kotlinmusic.ui.theme.SpotifyGreen
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.upstream.RawResourceDataSource
@@ -51,7 +57,7 @@ fun MainScreen() {
                 if (currentTrack.isNotEmpty()) {
                     MusicPlayerBar(player, currentTrack)
                 }
-                BottomNavigation {
+                BottomNavigation (backgroundColor = SpotifyGreen){
                     BottomNavigationItem(
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                         label = { Text("Home") },
@@ -104,7 +110,7 @@ fun MainScreen() {
 
 @Composable
 fun HomePage() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    Box(modifier = Modifier.fillMaxSize().background(SpotifyBlack), contentAlignment = Alignment.Center) {
         Text(text = "Home Page")
     }
 }
@@ -116,11 +122,22 @@ fun SearchScreen(onTrackSelected: (String) -> Unit) {
     var searchQuery by remember { mutableStateOf("") }
     val filteredResources = allRawResources.filter { it.contains(searchQuery.lowercase()) }
 
-    Column {
+    Column (modifier = Modifier
+        .fillMaxSize()
+        .background(SpotifyBlack)) {
+
         TextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Search") },
+            label = { Text("Search", color = Color.Black, fontWeight = FontWeight.Bold) },
+            textStyle = TextStyle(color = Color.Black, fontWeight = FontWeight.Bold),
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = Color.Black,
+                cursorColor = Color.Black,
+                focusedIndicatorColor = Color.Black,
+                unfocusedIndicatorColor = Color.Black,
+                backgroundColor = Color.White
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -131,6 +148,7 @@ fun SearchScreen(onTrackSelected: (String) -> Unit) {
                 val displayName = file.replaceFirst("playlist1_", "").replaceFirst("playlist2_", "").replace('_', ' ').replaceFirstChar { it.uppercase() }
                 Text(
                     text = displayName,
+                    color = Color.White,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onTrackSelected(file) }
@@ -159,6 +177,7 @@ fun PlaylistScreen(onTrackSelected: (String) -> Unit) {
                         context.startActivity(intent)
                     }
                     .padding(16.dp)
+                    .background(SpotifyBlack)
             )
         }
     }
@@ -175,7 +194,7 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colors.surface)
+            .background(SpotifyGray)
     ) {
         Row(
             modifier = Modifier
@@ -201,13 +220,14 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = trackTitle,
+                    color = Color.White,
                     style = MaterialTheme.typography.subtitle1,
                     maxLines = 1
                 )
                 Text(
                     text = trackArtist,
                     style = MaterialTheme.typography.caption,
-                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                    color = Color.White,
                     maxLines = 1
                 )
             }
@@ -221,7 +241,7 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
                 }
             }) {
                 Icon(
-                    imageVector = if (isPlaying) Icons.Default.PlayArrow else Icons.Default.Add,
+                    imageVector = if (isPlaying) Icons.Default.PlayArrow else Icons.Default.PlayArrow,
                     contentDescription = if (isPlaying) "Pause" else "Play"
                 )
             }

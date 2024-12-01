@@ -75,6 +75,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation ("androidx.compose.material:material:1.4.2")
+    implementation ("androidx.compose.material3:material3:1.0.1")
 
 
     val composeBom = platform("androidx.compose:compose-bom:2024.10.01")
@@ -90,6 +91,7 @@ dependencies {
     // UI Tests
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
 
 
 }
