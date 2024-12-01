@@ -111,8 +111,8 @@ fun MainScreen() {
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
             Column {
-                if (currentTrack != null) {
-                    MusicPlayerBar(player, currentTrack!!.toString())
+                currentTrack?.let {
+                    MusicPlayerBar(player, it)
                 }
                 BottomNavigation(backgroundColor = SpotifyGreen) {
                     BottomNavigationItem(
@@ -262,17 +262,9 @@ fun PlaylistScreen(onTrackSelected: (DeezerTrack) -> Unit) {
 }
 
 @Composable
-fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
+fun MusicPlayerBar(player: ExoPlayer, currentTrack: DeezerTrack) {
     val context = LocalContext.current
     val isPlaying by remember { mutableStateOf(player.isPlaying) }
-
-    val trackTitle = currentTrack
-        .replaceFirst("playlist1", "")
-        .replaceFirst("playlist2", "")
-        .replaceFirst("playlist3", "")
-        .replace('_', ' ')
-        .replaceFirstChar { it.uppercase() }
-    val trackArtist = "Unknown Artist"
 
     Column(
         modifier = Modifier
@@ -297,13 +289,13 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
             // Title and artist
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = trackTitle,
+                    text = currentTrack.title,
                     style = MaterialTheme.typography.body1,
                     color = Color.White,
                     maxLines = 1
                 )
                 Text(
-                    text = trackArtist,
+                    text = currentTrack.artist.name,
                     style = MaterialTheme.typography.caption,
                     color = Color.White,
                     maxLines = 1
@@ -319,8 +311,8 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
                 }
             }) {
                 Icon(
-                    imageVector = if (isPlaying) Icons.Default.Add else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
+                    imageVector = if (player.isPlaying) Icons.Default.Add else Icons.Default.PlayArrow,
+                    contentDescription = if (player.isPlaying) "Pause" else "Play",
                     tint = Color.White
                 )
             }
