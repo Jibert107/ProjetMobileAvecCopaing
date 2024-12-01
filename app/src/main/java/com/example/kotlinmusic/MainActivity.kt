@@ -1,6 +1,8 @@
 package com.example.kotlinmusic
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,7 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
@@ -32,13 +35,53 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.upstream.RawResourceDataSource
 
+import android.util.Size
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
+
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        val requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                // Permission is granted. You can perform the camera-related task.
+            } else {
+                // Permission is denied. Inform the user that the feature is unavailable.
+            }
+        }
         setContent {
             KotlinMusicTheme {
-                MainScreen()
+                var hasCameraPermission by remember {
+                    mutableStateOf(
+                        ContextCompat.checkSelfPermission(
+                            this,
+                            Manifest.permission.CAMERA
+                        ) == PackageManager.PERMISSION_GRANTED
+                    )
+                }
+
+                if (!hasCameraPermission) {
+                    LaunchedEffect(Unit) {
+                        requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                }
+
+                if (hasCameraPermission) {
+                    MainScreen()
+                } else {
+                    // Show a message or a different screen if permission is denied
+                    Text("Camera permission is required to use this feature.")
+                }
             }
         }
     }
@@ -111,7 +154,35 @@ fun MainScreen() {
 @Composable
 fun HomePage() {
     Box(modifier = Modifier.fillMaxSize().background(SpotifyBlack), contentAlignment = Alignment.Center) {
-        Text(text = "Home Page")
+        Row(modifier = Modifier.fillMaxSize()) {
+
+            Column(modifier = Modifier.weight(3f).padding(16.dp)) { // Right part (3/4 of the screen)
+                TaskItem("Mobile Android application in Kotlin (API > 35)", false)
+                TaskItem("Request a permission at runtime (location, camera, . . . )", true)
+                TaskItem("Usage of the WorkManager", false)
+                TaskItem("UI using XML or Jetpack Compose", true)
+                TaskItem("Activity navigation inside the app", false)
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            CameraPreview(modifier = Modifier.fillMaxWidth().weight(1f))
+        }
+    }
+}
+
+@Composable
+fun TaskItem(task: String, isCompleted: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = task,
+            color = Color.White,
+            style = MaterialTheme.typography.body1,
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            imageVector = if (isCompleted) Icons.Default.Check else Icons.Default.Close,
+            contentDescription = if (isCompleted) "Completed" else "Not Completed",
+            tint = if (isCompleted) Color.Green else Color.Red
+        )
     }
 }
 
@@ -255,4 +326,38 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: String) {
                 .height(4.dp)
         )
     }
+}
+
+
+@Composable
+fun CameraPreview(modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    val previewView = remember { PreviewView(context) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(Unit) {
+        val cameraProvider = cameraProviderFuture.get()
+        val preview = Preview.Builder()
+            .setTargetResolution(Size(1280, 720))
+            .build()
+        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+        preview.setSurfaceProvider(previewView.surfaceProvider)
+
+        val camera = cameraProvider.bindToLifecycle(
+            lifecycleOwner,
+            cameraSelector,
+            preview
+        )
+
+        onDispose {
+            cameraProvider.unbindAll()
+        }
+    }
+
+    AndroidView(
+        factory = { previewView },
+        modifier = modifier
+    )
 }
