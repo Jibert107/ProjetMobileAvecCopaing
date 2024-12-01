@@ -14,7 +14,9 @@ class DisplayMusicsActivity : ComponentActivity() {
 
         setContent {
             KotlinMusicTheme {
-                DisplayMusics(player, playlist)
+                DisplayMusics(player, playlist) {
+                    finish() // This will navigate back to the previous screen
+                }
             }
         }
     }

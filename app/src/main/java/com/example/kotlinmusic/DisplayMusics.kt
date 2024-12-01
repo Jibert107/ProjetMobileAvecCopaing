@@ -21,9 +21,7 @@ import com.google.android.exoplayer2.upstream.RawResourceDataSource
 import androidx.compose.ui.Alignment
 
 @Composable
-fun DisplayMusics(player: ExoPlayer, playlist: String) {
-    val context = LocalContext.current
-
+fun DisplayMusics(player: ExoPlayer, playlist: String, onBack: () -> Unit) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -32,7 +30,7 @@ fun DisplayMusics(player: ExoPlayer, playlist: String) {
                 contentDescription = "Back",
                 modifier = Modifier
                     .padding(16.dp)
-                    .clickable { (context as? ComponentActivity)?.finish() }
+                    .clickable { onBack() }
             )
         }
     ) { paddingValues ->
@@ -41,6 +39,7 @@ fun DisplayMusics(player: ExoPlayer, playlist: String) {
         }
     }
 }
+
 @Composable
 fun PlaylistPage(player: ExoPlayer, playlist: String) {
     val context = LocalContext.current
@@ -68,10 +67,6 @@ fun PlaylistPage(player: ExoPlayer, playlist: String) {
             )
         }
     }
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    PlayerViewComposable(player)
 }
 fun getRawResourceFileNames(context: Context, playlist: String): List<String> {
     val rawResources = mutableListOf<String>()
