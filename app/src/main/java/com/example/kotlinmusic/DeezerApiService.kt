@@ -3,8 +3,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-data class DeezerTrack(val title: String, val artist: Artist, val preview: String)
+data class DeezerTrack(val title: String, val artist: Artist, val album: Album, val preview: String)
 data class Artist(val name: String)
+data class Album(val cover: String)
+data class DeezerResponse(val data: List<DeezerTrack>)
+
 interface DeezerApiService {
     @GET("search")
     suspend fun searchTracks(@Query("q") query: String): DeezerResponse
@@ -21,5 +24,3 @@ interface DeezerApiService {
         }
     }
 }
-
-data class DeezerResponse(val data: List<DeezerTrack>)

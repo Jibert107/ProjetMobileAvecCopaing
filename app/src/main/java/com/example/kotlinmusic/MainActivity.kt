@@ -58,6 +58,7 @@ import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.util.Log
 import com.google.gson.Gson
+import coil.compose.AsyncImage
 
 
 class MainActivity : ComponentActivity() {
@@ -278,10 +279,10 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: DeezerTrack) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Image placeholder for the music
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(Color.Gray)
+            AsyncImage(
+                model = currentTrack.album.cover,
+                contentDescription = "Album cover",
+                modifier = Modifier.size(48.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
