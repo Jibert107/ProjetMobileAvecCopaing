@@ -163,7 +163,7 @@ fun HomePage() {
         Row(modifier = Modifier.fillMaxSize()) {
 
             Column(modifier = Modifier.weight(3f).padding(16.dp)) { // Right part (3/4 of the screen)
-                TaskItem("Mobile Android application in Kotlin (API > 35)", false)
+                TaskItem("Mobile Android application in Kotlin (API > 35)", true)
                 TaskItem("Request a permission at runtime (location, camera, . . . )", true)
                 TaskItem("Usage of the WorkManager", true)
                 TaskItem("UI using XML or Jetpack Compose", true)
