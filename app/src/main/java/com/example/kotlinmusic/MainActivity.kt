@@ -3,9 +3,7 @@ package com.example.kotlinmusic
 
 import DeezerTrack
 import DeezerWorker
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -13,14 +11,11 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
@@ -37,21 +32,12 @@ import com.example.kotlinmusic.ui.theme.SpotifyGray
 import com.example.kotlinmusic.ui.theme.SpotifyGreen
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.upstream.RawResourceDataSource
-
-import android.util.Size
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
-
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
-import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.util.Log
@@ -223,8 +209,6 @@ fun PlaylistScreen() {
 
 @Composable
 fun MusicPlayerBar(player: ExoPlayer, currentTrack: DeezerTrack) {
-    val context = LocalContext.current
-    val isPlaying by remember { mutableStateOf(player.isPlaying) }
 
     Column(
         modifier = Modifier

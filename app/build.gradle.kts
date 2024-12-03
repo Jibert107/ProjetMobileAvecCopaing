@@ -53,11 +53,8 @@ android {
 }
 
 dependencies {
-
-    implementation ("com.google.android.exoplayer:exoplayer:2.18.1")
     implementation("com.google.android.exoplayer:exoplayer:2.18.1")
     implementation("com.google.android.exoplayer:exoplayer-core:2.18.1")
-
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -74,33 +71,15 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation ("androidx.compose.material:material:1.4.2")
-    implementation ("androidx.compose.material3:material3:1.0.1")
-
+    implementation("androidx.compose.material:material:1.4.2")
+    implementation("androidx.compose.material3:material3:1.0.1")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.10.01")
     implementation(composeBom)
     androidTestImplementation(composeBom)
-    // Material Design 3
-    implementation("androidx.compose.material3:material3")
-
-    // Android Studio Preview support
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-
-    // UI Tests
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
-
-    //cam
-    implementation ("androidx.camera:camera-core:1.1.0")
-    implementation ("androidx.camera:camera-camera2:1.1.0")
-    implementation ("androidx.camera:camera-lifecycle:1.1.0")
-    implementation ("androidx.camera:camera-view:1.0.0-alpha31")
 
     implementation("androidx.work:work-runtime-ktx:2.7.1")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("io.coil-kt:coil-compose:2.0.0")
-
 }
