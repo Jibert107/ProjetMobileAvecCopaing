@@ -182,13 +182,26 @@ fun SearchScreen(onTrackSelected: (DeezerTrack) -> Unit) {
         )
 
         searchResult?.let { track ->
-            Text(
-                text = "${track.title} by ${track.artist.name}",
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth().clickable {
-                    onTrackSelected(track)
-                }.padding(16.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onTrackSelected(track) }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AsyncImage(
+                    model = track.album.cover,
+                    contentDescription = "Album cover",
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "${track.title} by ${track.artist.name}",
+                        color = Color.White
+                    )
+                }
+            }
         }
     }
 }
