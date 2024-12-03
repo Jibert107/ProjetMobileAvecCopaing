@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/kotlinmusic/MainActivity.kt
 package com.example.kotlinmusic
 
 import DeezerTrack
@@ -40,11 +41,8 @@ import com.google.android.exoplayer2.upstream.RawResourceDataSource
 
 import android.util.Size
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
 
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -60,42 +58,12 @@ import com.google.android.exoplayer2.util.Log
 import com.google.gson.Gson
 import coil.compose.AsyncImage
 
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val requestPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()
-        ) { isGranted: Boolean ->
-            if (isGranted) {
-                // Permission is granted. You can perform the camera-related task.
-            } else {
-                // Permission is denied. Inform the user that the feature is unavailable.
-            }
-        }
         setContent {
             KotlinMusicTheme {
-                var hasCameraPermission by remember {
-                    mutableStateOf(
-                        ContextCompat.checkSelfPermission(
-                            this,
-                            Manifest.permission.CAMERA
-                        ) == PackageManager.PERMISSION_GRANTED
-                    )
-                }
-
-                if (!hasCameraPermission) {
-                    LaunchedEffect(Unit) {
-                        requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
-                }
-
-                if (hasCameraPermission) {
-                    MainScreen()
-                } else {
-                    // Show a message or a different screen if permission is denied
-                    Text("Camera permission is required to use this feature.")
-                }
+                MainScreen()
             }
         }
     }
@@ -127,9 +95,12 @@ fun MainScreen() {
                         onClick = { selectedIndex = 1 }
                     )
                     BottomNavigationItem(
-                        icon = { Icon(Icons.Default.Menu, contentDescription = "Playlist") },
+                        icon = { Icon(Icons.Default.Build, contentDescription = "Settings") },
                         selected = selectedIndex == 2,
-                        onClick = { selectedIndex = 2 }
+                        onClick = {
+                            val intent = Intent(context, SettingsActivity::class.java)
+                            context.startActivity(intent)
+                        }
                     )
                 }
             }
@@ -145,13 +116,7 @@ fun MainScreen() {
                     player.prepare()
                     player.play()
                 }
-                2 -> PlaylistScreen { track ->
-                    currentTrack = track
-                    val uri = Uri.parse(track?.preview ?: "")
-                    player.setMediaItem(MediaItem.fromUri(uri))
-                    player.prepare()
-                    player.play()
-                }
+                2 -> PlaylistScreen()
             }
         }
     }
@@ -167,12 +132,11 @@ fun HomePage() {
                 TaskItem("Request a permission at runtime (location, camera, . . . )", true)
                 TaskItem("Usage of the WorkManager", true)
                 TaskItem("UI using XML or Jetpack Compose", true)
-                TaskItem("Activity navigation inside the app", false)
+                TaskItem("Activity navigation inside the app", true)
             }
             Spacer(modifier = Modifier.weight(1f))
 
         }
-        CameraPreview()
     }
 }
 
@@ -243,21 +207,16 @@ fun SearchScreen(onTrackSelected: (DeezerTrack) -> Unit) {
     }
 }
 
-
 @Composable
-fun PlaylistScreen(onTrackSelected: (DeezerTrack) -> Unit) {
+fun PlaylistScreen() {
     val context = LocalContext.current
-    val playlists = listOf("Playlist 1", "Playlist 2", "Playlist 3")
 
-    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-        items(playlists) { playlist ->
-            Text(
-                text = playlist,
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth().clickable {
-                    // Handle playlist click
-                }.padding(16.dp)
-            )
+    Column(modifier = Modifier.fillMaxSize().background(SpotifyBlack), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        Button(onClick = {
+            val intent = Intent(context, SettingsActivity::class.java)
+            context.startActivity(intent)
+        }) {
+            Text(text = "Go to Settings")
         }
     }
 }
@@ -334,39 +293,4 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: DeezerTrack) {
             Log.e("PlaybackError", "ExoPlayer error: ${error.message}")
         }
     })
-}
-
-@Composable
-fun CameraPreview(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    val previewView = remember { PreviewView(context) }
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    DisposableEffect(Unit) {
-        val cameraProvider = cameraProviderFuture.get()
-        val preview = Preview.Builder()
-            .setTargetResolution(Size(640, 360))
-            .build()
-        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-        preview.setSurfaceProvider(previewView.surfaceProvider)
-
-        val camera = cameraProvider.bindToLifecycle(
-            lifecycleOwner,
-            cameraSelector,
-            preview
-        )
-
-        onDispose {
-            cameraProvider.unbindAll()
-        }
-    }
-
-    AndroidView(
-        factory = { previewView },
-        modifier = modifier
-            .width(200.dp)  // Set the desired width
-            .height(150.dp) // Set the desired height
-    )
 }
