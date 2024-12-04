@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -43,10 +44,22 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.util.Log
 import com.google.gson.Gson
 import coil.compose.AsyncImage
+import android.Manifest
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val requestPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) {
+
+        }
+
+
+        requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+
         setContent {
             KotlinMusicTheme {
                 MainScreen()
@@ -123,6 +136,7 @@ fun HomePage() {
             Spacer(modifier = Modifier.weight(1f))
 
         }
+
     }
 }
 
@@ -205,7 +219,7 @@ fun SearchScreen(onTrackSelected: (DeezerTrack) -> Unit) {
         }
     }
 }
-// A RENAME SETTINGS SCREEN MAIS FLEEEEEEEEEEME
+//
 @Composable
 fun PlaylistScreen() {
     val context = LocalContext.current
@@ -268,7 +282,7 @@ fun MusicPlayerBar(player: ExoPlayer, currentTrack: DeezerTrack) {
                 }
             }) {
                 Icon(
-                    imageVector = if (player.isPlaying) Icons.Default.Add else Icons.Default.PlayArrow,
+                    imageVector = Icons.Default.PlayArrow,
                     contentDescription = if (player.isPlaying) "Pause" else "Play",
                     tint = Color.White
                 )
